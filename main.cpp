@@ -11,14 +11,18 @@
 #include <sstream>
 
 using namespace std;
-vector<string> memo;
-int numOfFrame, framePerRow, numOfRows;
 
 struct Process {
     char pid;
     int p_mem;
     vector<pair<int, int>> requests;
 };
+
+vector<string> memo;
+vector<Process> all_procs;
+int numOfFrame, framePerRow, numOfRows, accum_defrag_time;
+
+
 
 int str2int(string s) {
     int num = 0;
@@ -29,35 +33,41 @@ int str2int(string s) {
 }
 
 
-bool readInput(vector<Process>& input, string inputfile){
+void readInput(string inputfile){
     ifstream read(inputfile.c_str());
     if (!read.good()) {
-        std::cerr << "Can not open " << inputfile << " to read." << std::endl;
-        return 1;
+        cerr << "Can not open " << inputfile << " to read." << endl;
+        return;
     }
     
-    string line, token;
+    string line, token, word;
     while(read.peek() == '#') {
         getline(read, line);
     }
     
-    while(getline(read, line)) {
-        stringstream ss(line);
-        if(!getline(ss, token, '|')) return false;
-        string proc_id = token;
-        if(!getline(ss, token, '|')) return false;
-        int ini_arr_time = str2int(token);
-        if(!getline(ss, token, '|')) return false;
-        int burst_time = str2int(token);
-        if(!getline(ss, token, '|')) return false;
-        int num_bursts = str2int(token);
-        if(!getline(ss, token, '|')) return false;
-        int io_time = str2int(token);
-        input.push_back(Process(proc_id, ini_arr_time, burst_time, num_bursts, io_time));
+    getline(read, line, '\n');
+    int num_of_procs = str2int(line);
+    if(num_of_procs > 26) {
+        cerr << "Max num of simulation allowed is 26" << endl;
     }
+    all_procs.resize(num_of_procs);
     
+    for(int i = 0; i < num_of_procs; i++) {
+        getline(read, line, '\n');
+        stringstream thisline(line);
+        getline(thisline, word, ' ');
+        all_procs[i].pid = word[0];
+        getline(thisline, word, ' ');
+        all_procs[i].p_mem = str2int(word);
+        while(getline(thisline, word, ' ')) {
+            int split_pos = (int)word.find_first_of('/');
+            int arr_time = str2int(word.substr(0, split_pos));
+            int run_time = str2int(word.substr(split_pos + 1));
+            all_procs[i].requests.push_back({arr_time, run_time});
+        }
+    }
     read.close();
-    return true;
+    return;
 }
 
 void output() {
