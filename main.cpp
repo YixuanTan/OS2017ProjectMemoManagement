@@ -29,26 +29,34 @@ struct Process {
     vector<Slice> requests; // pair<> => {arrival time, run time}
 };
 
-struct Comp {
-    bool operator()(const itr& a, const itr& b) {
-        return a->arr_time > b->arr_time || (a->arr_time == b->arr_time && a->p_index > b->p_index); // if a arrives later than b
-    }
-};
-    
 string memo;
-vector<Process> all_procs;
+vector<Process> all_process_backup, all_procs;
 int numOfFrame, framePerRow, numOfRows, accum_defrag_time, curr_time;
 
-void reset() {
-    memo.clear();
-    all_procs.clear();
-    accum_defrag_time = curr_time = 0;
-}
+struct Comp {
+    bool operator()(const itr& a, const itr& b) {
+        return a->arr_time > b->arr_time || (a->arr_time == b->arr_time && all_procs[a->p_index].pid > all_procs[b->p_index].pid); // if a arrives later than b
+    }
+};
+
+
+struct CompTermin {
+    bool operator()(const pair<int, int>& a, const pair<int, int>& b) {
+        //return a.first > b.first || (a.first == b.first && all_procs[a.second].pid > all_procs[b.second].pid);
+        return a.first > b.first || (a.first == b.first && a.second > b.second);
+    }
+};
 
 
 // --------------------
 // utility functions
 // --------------------
+void reset() {
+    memo = string(memo.length(), '.');
+    accum_defrag_time = curr_time = 0;
+    all_procs = all_process_backup;
+}
+
 int str2int(string s) {
     int num = 0;
     for(unsigned int i = 0; i < s.length(); i++) {
@@ -91,6 +99,7 @@ void readInput(string inputfile){
         }
     }
     read.close();
+    all_process_backup = all_procs;
     return;
 }
 
@@ -110,8 +119,10 @@ void output() {
 // algorithm functions
 // --------------------
 void nextFit() {
+    reset();
     priority_queue<itr, vector<itr>, Comp> incoming_pq;
-    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> terminating_pq;
+    priority_queue<pair<int, int>, vector<pair<int, int>>, CompTermin> terminating_pq;
+    //priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> terminating_pq;
     int memo_ptr = 0;
     
     // initialize incoming_pq
@@ -273,6 +284,7 @@ void nextFit() {
 
 
 void bestFit() {
+    reset();
     priority_queue<itr, vector<itr>, Comp> incoming_pq;
     priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> terminating_pq;
     
@@ -413,6 +425,7 @@ void bestFit() {
 }
 
 void worstFit() {
+    reset();
     priority_queue<itr, vector<itr>, Comp> incoming_pq;
     priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> terminating_pq;
     
