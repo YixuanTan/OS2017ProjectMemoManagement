@@ -25,7 +25,7 @@ struct Process {
     vector<Slice> requests; // pair<> => {arrival time, run time}
 };
 
-struct NextFit {
+struct bestfit {
     bool operator()(const itr& a, const itr& b) {
         return a->arr_time > b->arr_time || (a->arr_time == b->arr_time && a->p_index > b->p_index); // if a arrives later than b
     }
@@ -104,26 +104,33 @@ int main(int argc, const char * argv[]) {
     numOfRows = numOfFrame / framePerRow;
     
     // initialization
-    memo.resize(numOfRows * numOfFrame, '.');
+    memo.resize(numOfFrame, '.');
     
     readInput(argv[1]);
     
-    priority_queue<itr, vector<itr>, NextFit> incoming_pq;
-    priority_queue<pair<int, char>, vector<pair<int, char>>, greater<pair<int, char>>> terminating_pq;
+    priority_queue<itr, vector<itr>, bestfit> incoming_pq;
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> terminating_pq;
+    
     
     // initialize incoming_pq
-    for(int i = 0; i < all_procs.size(); i++) incoming_pq.push(all_procs[i].requests.begin());
-    
+    for(int i = 0; i < all_procs.size(); i++) {
+        incoming_pq.push(all_procs[i].requests.begin());
+    }
+    cout << "time 0ms: Simulator started (Contiguous -- Best-Fit)" << endl;
     
     while(!incoming_pq.empty() || !terminating_pq.empty()) {
-        if(!terminating_pq.empty() && terminating_pq.top().first <= incoming_pq.top()->arr_time) {
-            char pid = terminating_pq.top().second;
+        if((!terminating_pq.empty() && terminating_pq.top().first <= incoming_pq.top()->arr_time) || incoming_pq.empty()) {
+            curr_time = terminating_pq.top().first;
+            char pid = all_procs[terminating_pq.top().second].pid;
             int start = (int)memo.find_first_of(pid);
             terminating_pq.pop();
             
-            int end = (int)memo.find_first_not_of(start, pid);
-            if(end == string::npos) memo.replace(start, memo.length(), string(memo.length() - start, '.'));
-            else memo.replace(start, end, string(end - start, '.'));
+            int end = (int)memo.find_first_not_of(pid, start);
+            if(end == string::npos) memo.replace(start, memo.length() - start, string(memo.length() - start, '.'));
+            else memo.replace(start, end - start, string(end - start, '.'));
+            
+            cout << "time " << curr_time << "ms: Process " << pid << " removed:" << endl;
+            output();
         }
         else {
             itr top_slice = incoming_pq.top();
@@ -131,35 +138,37 @@ int main(int argc, const char * argv[]) {
             
             
             //-------------------------------------------
-            // NEXT FIT
+            // BEST FIT
             //-------------------------------------------
             // find the first place in memo to fit
+            curr_time = top_slice->arr_time;
             int len_needed = all_procs[top_slice->p_index].p_mem;
             char pid = all_procs[top_slice->p_index].pid;
             cout << "time " << curr_time << "ms: Process " << pid << " arrived (requires " << len_needed << " frames)" << endl;
             
             int i = (int)memo.find_first_of('.'), j = i;  // two pointers, i is the begin of '.' sequene, j is the element passing the last of '.' sequence.
-            int nextfit_pos = 0, best_len_sofar = INT_MAX;
-            while((j = (int)memo.find_first_not_of(i + 1, '.')) != string::npos) {
+            int bestfit_pos = 0, best_len_sofar = INT_MAX;
+            while((j = (int)memo.find_first_not_of('.', i + 1)) != string::npos) {
                 int curr_len = j - i;
                 if(curr_len >= len_needed && curr_len - len_needed < best_len_sofar - len_needed) {
-                    nextfit_pos = i;
+                    bestfit_pos = i;
                     best_len_sofar = curr_len;
                 }
-                if((i = (int)memo.find_first_of(j + 1, '.')) == string::npos) break;
+                if((i = (int)memo.find_first_of('.', j + 1)) == string::npos) break;
             }
             if(i != string::npos && j == string::npos) {
                 int curr_len = (int)memo.length() - i;
                 if(curr_len >= len_needed && curr_len - len_needed < best_len_sofar - len_needed) {
-                    nextfit_pos = i;
+                    bestfit_pos = i;
                     best_len_sofar = curr_len;
                 }
             }
             
             if(best_len_sofar != INT_MAX) {
-                memo.replace(nextfit_pos, len_needed, string(len_needed, pid));
+                memo.replace(bestfit_pos, len_needed, string(len_needed, pid));
                 cout << "time " << curr_time << "ms: Placed process " << pid << ":" << endl;
                 output();
+                terminating_pq.push(make_pair(top_slice->arr_time + top_slice->run_time, top_slice->p_index));
             }
             else {
                 
@@ -167,7 +176,8 @@ int main(int argc, const char * argv[]) {
                 // first check if it is possible to defragment
                 set<char> defrag_set;
                 if(len_needed > count(memo.begin(), memo.end(), '.')) {
-                    cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- skipped" << endl;
+                    cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- skipped!" << endl;
+                    output();
                 } else {
                     cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- starting defragmentation" << endl;
                     int defrag_time = 0, i = 0, j = 0;
@@ -183,20 +193,25 @@ int main(int argc, const char * argv[]) {
                             j++;
                         }
                     }
-                    cout << "time " << curr_time << "ms: Defragmentation complete (moved " << defrag_time << " frames: ";
-                    for(set<char>::iterator it = defrag_set.begin(); it != defrag_set.end(); it++) {
-                        if(it != defrag_set.begin()) cout << ", " << *it;
-                        else cout << *it << endl;
-                    }
-                    cout << ")" << endl;
-                    
-                    memo.replace(i, i + len_needed, string(len_needed, pid));
-                    memo.replace(i + len_needed, memo.length(), string(memo.length() - i - len_needed, '.'));
-                    cout << "time " << curr_time << "ms: Placed process " << pid << ":" << endl;
-                    output();
                     
                     curr_time += defrag_time;
                     accum_defrag_time += defrag_time;
+
+                    cout << "time " << curr_time << "ms: Defragmentation complete (moved " << defrag_time << " frames: ";
+                    for(set<char>::iterator it = defrag_set.begin(); it != defrag_set.end(); it++) {
+                        if(it != defrag_set.begin()) cout << ", " << *it;
+                        else cout << *it;
+                    }
+                    cout << ")" << endl;
+
+                    output();
+                    
+                    memo.replace(i, len_needed, string(len_needed, pid));
+                    memo.replace(i + len_needed, memo.length() - i - len_needed, string(memo.length() - i - len_needed, '.'));
+                    cout << "time " << curr_time << "ms: Placed process " << pid << ":" << endl;
+                    output();
+                    terminating_pq.push(make_pair(top_slice->arr_time + top_slice->run_time, top_slice->p_index));
+
                     
                     // update incoming_pq;
                     vector<itr> incoming_tmp;
@@ -211,7 +226,7 @@ int main(int argc, const char * argv[]) {
                     vector<pair<int, int>> terminating_tmp;
                     while(!terminating_pq.empty()) {
                         int end_time = terminating_pq.top().first + defrag_time;
-                        terminating_tmp.push_back(make_pair(end_time, pid));
+                        terminating_tmp.push_back(make_pair(end_time, terminating_pq.top().second));
                         terminating_pq.pop();
                     }
                     for(int k = 0; k < terminating_tmp.size(); k++) terminating_pq.push(terminating_tmp[k]);
@@ -219,9 +234,9 @@ int main(int argc, const char * argv[]) {
                 }
             }
             // push in incoming_pq top() -> next
-            if(++top_slice != all_procs[top_slice->p_index].requests.end()) {
+            if((top_slice + 1) != all_procs[top_slice->p_index].requests.end()) {
                 // push in new process + accumulated defragmentation time
-                top_slice->arr_time += accum_defrag_time;
+                (++top_slice)->arr_time += accum_defrag_time;
                 incoming_pq.push(top_slice);
             }
 
@@ -229,6 +244,6 @@ int main(int argc, const char * argv[]) {
         
     }
     
-    cout << "time " << curr_time << "ms: Simulator ended (Contiguous -- Next-Fit)" << endl;
+    cout << "time " << curr_time << "ms: Simulator ended (Contiguous -- Best-Fit)" << endl;
     return 0;
 }
