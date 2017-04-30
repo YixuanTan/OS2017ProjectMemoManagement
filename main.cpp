@@ -1,16 +1,14 @@
-//
 //  OS2017
 //  project2
-//
-//
+//  By: Yixuan Tan, Zhengneng Chen
 
 #include <iostream>
 #include <vector>
-#include <unordered_map>
 #include <fstream>
 #include <sstream>
 #include <queue>
 #include <set>
+#include <limits.h>
 using namespace std;
 
 // --------------------
@@ -19,6 +17,7 @@ using namespace std;
 
 struct Slice{
     int arr_time, run_time, p_index; // p_index is the index of this process in all_proc[]
+    Slice(int arr_time_, int run_time_, int p_index_) : arr_time(arr_time_), run_time(run_time_), p_index(p_index_) {};
 };
 
 typedef vector<Slice>::iterator itr; // iterator for requests vector<> in struct Sliceocess
@@ -51,6 +50,16 @@ struct CompTermin {
 // --------------------
 // utility functions
 // --------------------
+int count(const string::iterator& i, const string::iterator& j, char target) {
+    int ans = 0;
+    string::iterator i_cpy = i;
+    while(i_cpy != j) {
+        ans += (*i_cpy == target);
+        i_cpy++;
+    }
+    return ans;
+}
+
 void reset() {
     memo = string(memo.length(), '.');
     accum_defrag_time = curr_time = 0;
@@ -95,7 +104,7 @@ void readInput(string inputfile){
             int split_pos = (int)word.find_first_of('/');
             int arr_time = str2int(word.substr(0, split_pos));
             int run_time = str2int(word.substr(split_pos + 1));
-            all_procs[i].requests.push_back({arr_time, run_time, i});
+            all_procs[i].requests.push_back(Slice(arr_time, run_time, i));
         }
     }
     read.close();
@@ -121,7 +130,7 @@ void output() {
 void nextFit() {
     reset();
     priority_queue<itr, vector<itr>, Comp> incoming_pq;
-    priority_queue<pair<int, int>, vector<pair<int, int>>, CompTermin> terminating_pq;
+    priority_queue<pair<int, int>, vector< pair<int, int> >, CompTermin> terminating_pq;
     //priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> terminating_pq;
     int memo_ptr = 0;
     
@@ -258,7 +267,7 @@ void nextFit() {
                     for(int k = 0; k < incoming_tmp.size(); k++) incoming_pq.push(incoming_tmp[k]); // re-push
                     
                     // update terminating_pq
-                    vector<pair<int, int>> terminating_tmp;
+                    vector< pair<int, int> > terminating_tmp;
                     while(!terminating_pq.empty()) {
                         int end_time = terminating_pq.top().first + defrag_time;
                         terminating_tmp.push_back(make_pair(end_time, terminating_pq.top().second));
@@ -286,7 +295,7 @@ void nextFit() {
 void bestFit() {
     reset();
     priority_queue<itr, vector<itr>, Comp> incoming_pq;
-    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> terminating_pq;
+    priority_queue< pair<int, int>, vector< pair<int, int> >, greater< pair<int, int> > > terminating_pq;
     
     
     // initialize incoming_pq
@@ -400,7 +409,7 @@ void bestFit() {
                     for(int k = 0; k < incoming_tmp.size(); k++) incoming_pq.push(incoming_tmp[k]); // re-push
                     
                     // update terminating_pq
-                    vector<pair<int, int>> terminating_tmp;
+                    vector< pair<int, int> > terminating_tmp;
                     while(!terminating_pq.empty()) {
                         int end_time = terminating_pq.top().first + defrag_time;
                         terminating_tmp.push_back(make_pair(end_time, terminating_pq.top().second));
@@ -427,7 +436,7 @@ void bestFit() {
 void worstFit() {
     reset();
     priority_queue<itr, vector<itr>, Comp> incoming_pq;
-    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> terminating_pq;
+    priority_queue< pair<int, int>, vector< pair<int, int> >, greater< pair<int, int> > > terminating_pq;
     
     // initialize incoming_pq
     for(int i = 0; i < all_procs.size(); i++) {
@@ -540,7 +549,7 @@ void worstFit() {
                     for(int k = 0; k < incoming_tmp.size(); k++) incoming_pq.push(incoming_tmp[k]); // re-push
                     
                     // update terminating_pq
-                    vector<pair<int, int>> terminating_tmp;
+                    vector< pair<int, int> > terminating_tmp;
                     while(!terminating_pq.empty()) {
                         int end_time = terminating_pq.top().first + defrag_time;
                         terminating_tmp.push_back(make_pair(end_time, terminating_pq.top().second));
