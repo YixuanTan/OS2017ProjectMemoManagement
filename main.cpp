@@ -68,7 +68,7 @@ void reset() {
 
 int str2int(string s) {
     int num = 0;
-    for(unsigned int i = 0; i < s.length(); i++) {
+    for(int i = 0; i < (int)s.length(); i++) {
         num = num * 10 + s[i] - '0';
     }
     return num;
@@ -116,7 +116,7 @@ void output() {
     
     cout << string(framePerRow, '=') << endl;
     int i = 0;
-    while(i < memo.length()) {
+    while(i < (int)memo.length()) {
         cout << memo.substr(i, framePerRow) << endl;
         i += framePerRow;
     }
@@ -135,7 +135,7 @@ void nextFit() {
     int memo_ptr = 0;
     
     // initialize incoming_pq
-    for(int i = 0; i < all_procs.size(); i++) {
+    for(int i = 0; i < (int)all_procs.size(); i++) {
         incoming_pq.push(all_procs[i].requests.begin());
     }
     cout << "time 0ms: Simulator started (Contiguous -- Next-Fit)" << endl;
@@ -148,7 +148,7 @@ void nextFit() {
             terminating_pq.pop();
             
             int end = (int)memo.find_first_not_of(pid, start);
-            if(end == string::npos) {
+            if(end == (int)string::npos) {
                 memo.replace(start, memo.length() - start, string(memo.length() - start, '.'));
             } else {
                 memo.replace(start, end - start, string(end - start, '.'));
@@ -173,15 +173,15 @@ void nextFit() {
 
             int i = (int)memo.find_first_of('.', memo_ptr), j = i;  // two pointers, i is the begin of '.' sequene, j is the element passing the last of '.' sequence.
             int nextfit_pos = INT_MIN;
-            while(i != string::npos && ((j = (int)memo.find_first_not_of('.', i)) != string::npos)) {
+            while(i != (int)string::npos && ((j = (int)memo.find_first_not_of('.', i)) != (int)string::npos)) {
                 int curr_len = j - i;
                 if(curr_len >= len_needed) {
                     nextfit_pos = i;
                     break;
                 }
-                if((i = (int)memo.find_first_of('.', j)) == string::npos) break;
+                if((i = (int)memo.find_first_of('.', j)) == (int)string::npos) break;
             }
-            if(i != string::npos && j == string::npos) {
+            if(i != (int)string::npos && j == (int)string::npos) {
                 int curr_len = (int)memo.length() - i;
                 if(curr_len >= len_needed) {
                     nextfit_pos = i;
@@ -190,15 +190,15 @@ void nextFit() {
 
             if(nextfit_pos == INT_MIN) {
                 i = j = 0;  // two pointers, i is the begin of '.' sequene, j is the element passing the last of '.' sequence.
-                while(i != string::npos && ((j = (int)memo.find_first_not_of('.', i)) != string::npos)) {
+                while(i != (int)string::npos && ((j = (int)memo.find_first_not_of('.', i)) != (int)string::npos)) {
                     int curr_len = j - i;
                     if(curr_len >= len_needed) {
                         nextfit_pos = i;
                         break;
                     }
-                    if((i = (int)memo.find_first_of('.', j)) == string::npos) break;
+                    if((i = (int)memo.find_first_of('.', j)) == (int)string::npos) break;
                 }
-                if(i != string::npos && j == string::npos) {
+                if(i != (int)string::npos && j == (int)string::npos) {
                     int curr_len = (int)memo.length() - i;
                     if(curr_len >= len_needed) {
                         nextfit_pos = i;
@@ -224,7 +224,7 @@ void nextFit() {
                 } else {
                     cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- starting defragmentation" << endl;
                     int defrag_time = 0, i = 0, j = 0;
-                    while(j < memo.length()) {
+                    while(j < (int)memo.length()) {
                         if(memo[j] == '.') {
                             j++;
                         } else if(i != j){
@@ -264,7 +264,7 @@ void nextFit() {
                         incoming_tmp.push_back(incoming_pq.top());
                         incoming_pq.pop();
                     }
-                    for(int k = 0; k < incoming_tmp.size(); k++) incoming_pq.push(incoming_tmp[k]); // re-push
+                    for(int k = 0; k < (int)incoming_tmp.size(); k++) incoming_pq.push(incoming_tmp[k]); // re-push
                     
                     // update terminating_pq
                     vector< pair<int, int> > terminating_tmp;
@@ -273,7 +273,7 @@ void nextFit() {
                         terminating_tmp.push_back(make_pair(end_time, terminating_pq.top().second));
                         terminating_pq.pop();
                     }
-                    for(int k = 0; k < terminating_tmp.size(); k++) terminating_pq.push(terminating_tmp[k]);
+                    for(int k = 0; k < (int)terminating_tmp.size(); k++) terminating_pq.push(terminating_tmp[k]);
                     
                 }
             }
@@ -299,7 +299,7 @@ void bestFit() {
     
     
     // initialize incoming_pq
-    for(int i = 0; i < all_procs.size(); i++) {
+    for(int i = 0; i < (int)all_procs.size(); i++) {
         incoming_pq.push(all_procs[i].requests.begin());
     }
     cout << "time 0ms: Simulator started (Contiguous -- Best-Fit)" << endl;
@@ -312,7 +312,7 @@ void bestFit() {
             terminating_pq.pop();
             
             int end = (int)memo.find_first_not_of(pid, start);
-            if(end == string::npos) memo.replace(start, memo.length() - start, string(memo.length() - start, '.'));
+            if(end == (int)string::npos) memo.replace(start, memo.length() - start, string(memo.length() - start, '.'));
             else memo.replace(start, end - start, string(end - start, '.'));
             
             cout << "time " << curr_time << "ms: Process " << pid << " removed:" << endl;
@@ -334,15 +334,15 @@ void bestFit() {
             
             int i = (int)memo.find_first_of('.'), j = i;  // two pointers, i is the begin of '.' sequene, j is the element passing the last of '.' sequence.
             int bestfit_pos = 0, best_len_sofar = INT_MAX;
-            while((j = (int)memo.find_first_not_of('.', i + 1)) != string::npos) {
+            while((j = (int)memo.find_first_not_of('.', i + 1)) != (int)string::npos) {
                 int curr_len = j - i;
                 if(curr_len >= len_needed && curr_len - len_needed < best_len_sofar - len_needed) {
                     bestfit_pos = i;
                     best_len_sofar = curr_len;
                 }
-                if((i = (int)memo.find_first_of('.', j + 1)) == string::npos) break;
+                if((i = (int)memo.find_first_of('.', j + 1)) == (int)string::npos) break;
             }
-            if(i != string::npos && j == string::npos) {
+            if(i != (int)string::npos && j == (int)string::npos) {
                 int curr_len = (int)memo.length() - i;
                 if(curr_len >= len_needed && curr_len - len_needed < best_len_sofar - len_needed) {
                     bestfit_pos = i;
@@ -363,11 +363,11 @@ void bestFit() {
                 set<char> defrag_set;
                 if(len_needed > count(memo.begin(), memo.end(), '.')) {
                     cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- skipped!" << endl;
-                    output();
+                    //output();
                 } else {
                     cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- starting defragmentation" << endl;
                     int defrag_time = 0, i = 0, j = 0;
-                    while(j < memo.length()) {
+                    while(j < (int)memo.length()) {
                         if(memo[j] == '.') {
                             j++;
                         } else if(i != j){
@@ -406,7 +406,7 @@ void bestFit() {
                         incoming_tmp.push_back(incoming_pq.top());
                         incoming_pq.pop();
                     }
-                    for(int k = 0; k < incoming_tmp.size(); k++) incoming_pq.push(incoming_tmp[k]); // re-push
+                    for(int k = 0; k < (int)incoming_tmp.size(); k++) incoming_pq.push(incoming_tmp[k]); // re-push
                     
                     // update terminating_pq
                     vector< pair<int, int> > terminating_tmp;
@@ -415,7 +415,7 @@ void bestFit() {
                         terminating_tmp.push_back(make_pair(end_time, terminating_pq.top().second));
                         terminating_pq.pop();
                     }
-                    for(int k = 0; k < terminating_tmp.size(); k++) terminating_pq.push(terminating_tmp[k]);
+                    for(int k = 0; k < (int)terminating_tmp.size(); k++) terminating_pq.push(terminating_tmp[k]);
                     
                 }
             }
@@ -439,7 +439,7 @@ void worstFit() {
     priority_queue< pair<int, int>, vector< pair<int, int> >, greater< pair<int, int> > > terminating_pq;
     
     // initialize incoming_pq
-    for(int i = 0; i < all_procs.size(); i++) {
+    for(int i = 0; i < (int)all_procs.size(); i++) {
         incoming_pq.push(all_procs[i].requests.begin());
     }
     cout << "time 0ms: Simulator started (Contiguous -- Worst-Fit)" << endl;
@@ -452,7 +452,7 @@ void worstFit() {
             terminating_pq.pop();
             
             int end = (int)memo.find_first_not_of(pid, start);
-            if(end == string::npos) memo.replace(start, memo.length() - start, string(memo.length() - start, '.'));
+            if(end == (int)string::npos) memo.replace(start, memo.length() - start, string(memo.length() - start, '.'));
             else memo.replace(start, end - start, string(end - start, '.'));
             
             cout << "time " << curr_time << "ms: Process " << pid << " removed:" << endl;
@@ -474,15 +474,15 @@ void worstFit() {
             
             int i = (int)memo.find_first_of('.'), j = i;  // two pointers, i is the begin of '.' sequene, j is the element passing the last of '.' sequence.
             int bestfit_pos = 0, best_len_sofar = 0;
-            while((j = (int)memo.find_first_not_of('.', i + 1)) != string::npos) {
+            while((j = (int)memo.find_first_not_of('.', i + 1)) != (int)string::npos) {
                 int curr_len = j - i;
                 if(curr_len >= len_needed && curr_len - len_needed > best_len_sofar - len_needed) {
                     bestfit_pos = i;
                     best_len_sofar = curr_len;
                 }
-                if((i = (int)memo.find_first_of('.', j + 1)) == string::npos) break;
+                if((i = (int)memo.find_first_of('.', j + 1)) == (int)string::npos) break;
             }
-            if(i != string::npos && j == string::npos) {
+            if(i != (int)string::npos && j == (int)string::npos) {
                 int curr_len = (int)memo.length() - i;
                 if(curr_len >= len_needed && curr_len - len_needed > best_len_sofar - len_needed) {
                     bestfit_pos = i;
@@ -507,7 +507,7 @@ void worstFit() {
                 } else {
                     cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- starting defragmentation" << endl;
                     int defrag_time = 0, i = 0, j = 0;
-                    while(j < memo.length()) {
+                    while(j < (int)memo.length()) {
                         if(memo[j] == '.') {
                             j++;
                         } else if(i != j){
@@ -546,7 +546,7 @@ void worstFit() {
                         incoming_tmp.push_back(incoming_pq.top());
                         incoming_pq.pop();
                     }
-                    for(int k = 0; k < incoming_tmp.size(); k++) incoming_pq.push(incoming_tmp[k]); // re-push
+                    for(int k = 0; k < (int)incoming_tmp.size(); k++) incoming_pq.push(incoming_tmp[k]); // re-push
                     
                     // update terminating_pq
                     vector< pair<int, int> > terminating_tmp;
@@ -555,7 +555,7 @@ void worstFit() {
                         terminating_tmp.push_back(make_pair(end_time, terminating_pq.top().second));
                         terminating_pq.pop();
                     }
-                    for(int k = 0; k < terminating_tmp.size(); k++) terminating_pq.push(terminating_tmp[k]);
+                    for(int k = 0; k < (int)terminating_tmp.size(); k++) terminating_pq.push(terminating_tmp[k]);
                     
                 }
             }
