@@ -619,6 +619,7 @@ void non_contiguous() {
             
             if (len_needed > count) { // Memory not enough to put process in
                 cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- skipped!" << endl;
+                output();
             } else { // Space is enough, put in using first-fit
                 for (int i = 0; i < numOfFrame; ++i) {
                     if (memo[i] == '.' && len_needed > 0) {
