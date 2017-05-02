@@ -113,7 +113,6 @@ void readInput(string inputfile){
 }
 
 void output() {
-    
     cout << string(framePerRow, '=') << endl;
     int i = 0;
     while(i < memo.length()) {
@@ -131,7 +130,6 @@ void nextFit() {
     reset();
     priority_queue<itr, vector<itr>, Comp> incoming_pq;
     priority_queue<pair<int, int>, vector< pair<int, int> >, CompTermin> terminating_pq;
-    //priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> terminating_pq;
     int memo_ptr = 0;
     
     // initialize incoming_pq
@@ -332,7 +330,7 @@ void bestFit() {
             char pid = all_procs[top_slice->p_index].pid;
             cout << "time " << curr_time << "ms: Process " << pid << " arrived (requires " << len_needed << " frames)" << endl;
             
-            int i = (int)memo.find_first_of('.'), j = i;  // two pointers, i is the begin of '.' sequene, j is the element passing the last of '.' sequence.
+            int i = (int)memo.find_first_of('.'), j = i;  // two pointers, i is the begin of '.' sequence, j is the element passing the last of '.' sequence.
             int bestfit_pos = 0, best_len_sofar = INT_MAX;
             while((j = (int)memo.find_first_not_of('.', i + 1)) != string::npos) {
                 int curr_len = j - i;
@@ -573,6 +571,79 @@ void worstFit() {
     cout << "time " << curr_time << "ms: Simulator ended (Contiguous -- Worst-Fit)" << endl;
 }
 
+void non_contiguous() {
+    reset();
+    priority_queue<itr, vector<itr>, Comp> incoming_pq;
+    priority_queue< pair<int, int>, vector< pair<int, int> >, greater< pair<int, int> > > terminating_pq;
+    
+    // initialize incoming_pq
+    for(int i = 0; i < all_procs.size(); i++) {
+        incoming_pq.push(all_procs[i].requests.begin());
+    }
+    cout << "time 0ms: Simulator started (Non-contiguous)" << endl;
+    
+    while ( !incoming_pq.empty() && !terminating_pq.empty() ) {
+        if( (!terminating_pq.empty() && terminating_pq.top().first <= incoming_pq.top()->arr_time) || incoming_pq.empty() ) { // There is a process terminating before a new porcess could come
+            curr_time = terminating_pq.top().first;
+            char pid = all_procs[terminating_pq.top().second].pid;
+            terminating_pq.pop();
+            
+            for (int i = 0; i < numOfFrame; ++i) {
+                if (memo[i] == pid) {
+                    memo[i] = '.';
+                }
+            }
+            
+            cout << "time " << curr_time << "ms: Process " << pid << " removed:" << endl;
+            output();
+        } else { // No processes is terminating. Processing for a new incoming process
+            itr top_slice = incoming_pq.top();
+            incoming_pq.pop();
+            
+            //-------------------------------------------
+            // Non-contiguous
+            //-------------------------------------------
+            // find all places in memo to fit
+            curr_time = top_slice->arr_time;
+            int len_needed = all_procs[top_slice->p_index].p_mem;
+            char pid = all_procs[top_slice->p_index].pid;
+            cout << "time " << curr_time << "ms: Process " << pid << " arrived (requires " << len_needed << " frames)" << endl;
+            
+            // Check if there are enough space to put process in
+            int count = 0;
+            for (int i = 0; i < numOfFrame; ++i) {
+                if (memo[i] == '.') {
+                    count++;
+                }
+            }
+            
+            if (len_needed > count) { // Memory not enough to put process in
+                cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- skipped!" << endl;
+            } else { // Space is enough, put in using first-fit
+                for (int i = 0; i < numOfFrame; ++i) {
+                    if (memo[i] == '.' && count > 0) {
+                        memo[i] = pid;
+                        count--;
+                    }
+                }
+                
+                cout << "time " << curr_time << "ms: Placed process " << pid << ":" << endl;
+                output();
+                terminating_pq.push(make_pair(top_slice->arr_time + top_slice->run_time, top_slice->p_index));
+            }
+        }
+        
+        // push in incoming_pq top() -> next
+        if((top_slice + 1) != all_procs[top_slice->p_index].requests.end()) {
+            // push in new process + accumulated defragmentation time
+            (++top_slice)->arr_time += accum_defrag_time;
+            incoming_pq.push(top_slice);
+        }
+    }
+    
+    cout << "time " << curr_time << "ms: Simulator ended (Non-contiguous)" << endl;
+}
+
 int main(int argc, const char * argv[]) {
     // insert code here...
     numOfFrame = 256;
@@ -589,6 +660,8 @@ int main(int argc, const char * argv[]) {
     bestFit();
     cout << endl;
     worstFit();
+    cout << endl;
+    non_contiguous();
     
     return 0;
 }
