@@ -582,7 +582,7 @@ void non_contiguous() {
     }
     cout << "time 0ms: Simulator started (Non-contiguous)" << endl;
     
-    while ( !incoming_pq.empty() && !terminating_pq.empty() ) {
+    while ( !incoming_pq.empty() || !terminating_pq.empty() ) {
         if( (!terminating_pq.empty() && terminating_pq.top().first <= incoming_pq.top()->arr_time) || incoming_pq.empty() ) { // There is a process terminating before a new porcess could come
             curr_time = terminating_pq.top().first;
             char pid = all_procs[terminating_pq.top().second].pid;
@@ -621,9 +621,9 @@ void non_contiguous() {
                 cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- skipped!" << endl;
             } else { // Space is enough, put in using first-fit
                 for (int i = 0; i < numOfFrame; ++i) {
-                    if (memo[i] == '.' && count > 0) {
+                    if (memo[i] == '.' && len_needed > 0) {
                         memo[i] = pid;
-                        count--;
+                        len_needed--;
                     }
                 }
                 
@@ -631,13 +631,13 @@ void non_contiguous() {
                 output();
                 terminating_pq.push(make_pair(top_slice->arr_time + top_slice->run_time, top_slice->p_index));
             }
-        }
-        
-        // push in incoming_pq top() -> next
-        if((top_slice + 1) != all_procs[top_slice->p_index].requests.end()) {
-            // push in new process + accumulated defragmentation time
-            (++top_slice)->arr_time += accum_defrag_time;
-            incoming_pq.push(top_slice);
+            
+            // push in incoming_pq top() -> next
+            if((top_slice + 1) != all_procs[top_slice->p_index].requests.end()) {
+                // push in new process + accumulated defragmentation time
+                (++top_slice)->arr_time += accum_defrag_time;
+                incoming_pq.push(top_slice);
+            }
         }
     }
     
