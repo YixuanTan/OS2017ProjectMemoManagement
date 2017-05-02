@@ -218,7 +218,7 @@ void nextFit() {
                 set<char> defrag_set;
                 if(len_needed > count(memo.begin(), memo.end(), '.')) {
                     cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- skipped!" << endl;
-                    output();
+                    //output();
                 } else {
                     cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- starting defragmentation" << endl;
                     int defrag_time = 0, i = 0, j = 0;
@@ -361,7 +361,7 @@ void bestFit() {
                 set<char> defrag_set;
                 if(len_needed > count(memo.begin(), memo.end(), '.')) {
                     cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- skipped!" << endl;
-                    output();
+                    //output();
                 } else {
                     cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- starting defragmentation" << endl;
                     int defrag_time = 0, i = 0, j = 0;
@@ -501,7 +501,7 @@ void worstFit() {
                 set<char> defrag_set;
                 if(len_needed > count(memo.begin(), memo.end(), '.')) {
                     cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- skipped!" << endl;
-                    output();
+                    //output();
                 } else {
                     cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- starting defragmentation" << endl;
                     int defrag_time = 0, i = 0, j = 0;
@@ -619,7 +619,7 @@ void non_contiguous() {
             
             if (len_needed > count) { // Memory not enough to put process in
                 cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- skipped!" << endl;
-                output();
+                //output();
             } else { // Space is enough, put in using first-fit
                 for (int i = 0; i < numOfFrame; ++i) {
                     if (memo[i] == '.' && len_needed > 0) {
