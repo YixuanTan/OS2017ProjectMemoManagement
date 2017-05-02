@@ -218,7 +218,7 @@ void nextFit() {
                 set<char> defrag_set;
                 if(len_needed > count(memo.begin(), memo.end(), '.')) {
                     cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- skipped!" << endl;
-                    output();
+                    //output();
                 } else {
                     cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- starting defragmentation" << endl;
                     int defrag_time = 0, i = 0, j = 0;
@@ -293,7 +293,7 @@ void nextFit() {
 void bestFit() {
     reset();
     priority_queue<itr, vector<itr>, Comp> incoming_pq;
-    priority_queue< pair<int, int>, vector< pair<int, int> >, greater< pair<int, int> > > terminating_pq;
+    priority_queue< pair<int, int>, vector< pair<int, int> >, CompTermin> terminating_pq;
     
     
     // initialize incoming_pq
@@ -434,7 +434,7 @@ void bestFit() {
 void worstFit() {
     reset();
     priority_queue<itr, vector<itr>, Comp> incoming_pq;
-    priority_queue< pair<int, int>, vector< pair<int, int> >, greater< pair<int, int> > > terminating_pq;
+    priority_queue< pair<int, int>, vector< pair<int, int> >, CompTermin> terminating_pq;
     
     // initialize incoming_pq
     for(int i = 0; i < (int)all_procs.size(); i++) {
@@ -501,7 +501,7 @@ void worstFit() {
                 set<char> defrag_set;
                 if(len_needed > count(memo.begin(), memo.end(), '.')) {
                     cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- skipped!" << endl;
-                    output();
+                    //output();
                 } else {
                     cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- starting defragmentation" << endl;
                     int defrag_time = 0, i = 0, j = 0;
@@ -574,10 +574,10 @@ void worstFit() {
 void non_contiguous() {
     reset();
     priority_queue<itr, vector<itr>, Comp> incoming_pq;
-    priority_queue< pair<int, int>, vector< pair<int, int> >, greater< pair<int, int> > > terminating_pq;
+    priority_queue< pair<int, int>, vector< pair<int, int> >, CompTermin> terminating_pq;
     
     // initialize incoming_pq
-    for(int i = 0; i < all_procs.size(); i++) {
+    for(int i = 0; i < (int)all_procs.size(); i++) {
         incoming_pq.push(all_procs[i].requests.begin());
     }
     cout << "time 0ms: Simulator started (Non-contiguous)" << endl;
@@ -619,7 +619,7 @@ void non_contiguous() {
             
             if (len_needed > count) { // Memory not enough to put process in
                 cout << "time " << curr_time << "ms: Cannot place process " << pid << " -- skipped!" << endl;
-                output();
+                //output();
             } else { // Space is enough, put in using first-fit
                 for (int i = 0; i < numOfFrame; ++i) {
                     if (memo[i] == '.' && len_needed > 0) {
