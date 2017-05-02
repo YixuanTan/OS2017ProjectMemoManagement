@@ -1,6 +1,7 @@
 //  OS2017
 //  project2
-//  By: Yixuan Tan, Zhengneng Chen, Wen Cai
+//  By: Yixuan Tan (tany3), Zhengneng Chen (chenz11)
+//
 
 #include <iostream>
 #include <vector>
